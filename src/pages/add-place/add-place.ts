@@ -5,6 +5,12 @@ import { SetLocationPage } from '../set-location/set-location';
 import { Location } from '../../models/locations';
 import { Geolocation } from '@ionic-native/geolocation';
 import { Camera } from '@ionic-native/camera';
+import { File, Entry, FileError } from '@ionic-native/file';
+import { normalizeURL } from 'ionic-angular';
+import { PlacesService } from '../../services/places';
+
+
+declare var cordova: any;
 
 @IonicPage()
 @Component({
@@ -17,16 +23,28 @@ export class AddPlacePage {
     lng: -73.9759827
   };
   locationIsSet = false;
+  imageUrl = '';
 
   constructor(
     private modalCtrl: ModalController,
     private geoLocation: Geolocation,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private camera: Camera
+    private camera: Camera,
+    private file: File,
+    private placesService: PlacesService
   ) {}
+
   onSubmit(form: NgForm) {
     console.log(form.value);
+    this.placesService.addPlace(form.value.title, form.value.description, this.location, this.imageUrl);
+    form.reset();
+    this.location = {
+      lat: 40.7524324,
+      lng: -73.9759827
+    };
+    this.imageUrl = '';
+    this.locationIsSet = false;
   }
 
   onOpenMap() {
@@ -74,9 +92,33 @@ export class AddPlacePage {
     })
       .then(imageData => {
         console.log(imageData);
+        console.log(normalizeURL(imageData));
+        const normalizedUrl = normalizeURL(imageData);
+        const currentName = normalizedUrl.replace(/^.*[\\\/]/, '');
+        const path = normalizedUrl.replace(/[^\/]*$/, '');
+        this.file.moveFile(path, currentName, cordova.file.dataDirectory, currentName)
+        .then((data: Entry) => {
+          this.imageUrl = data.nativeURL;
+          this.camera.cleanup();
+          this.file.removeFile(path, currentName);
+        })
+        .catch((err: FileError) => {
+          this.imageUrl = '';
+          const toast = this.toastCtrl.create({
+            message: 'Could not save the image.Plase try agaiin',
+            duration: 2500
+          });
+          toast.present();
+          this.camera.cleanup();
+        });
+        // this.imageUrl = normalizedUrl;
       })
       .catch(err => {
-        console.error(err);
+        const toast = this.toastCtrl.create({
+          message: 'Could not save the image.Plase try agaiin',
+          duration: 2500
+        });
+        toast.present();
       });
   }
 }

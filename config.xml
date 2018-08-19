@@ -43,6 +43,18 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
+        <config-file mode="add" parent="NSPhotoLibraryUsageDescription" platform="ios" target="*-Info.plist">
+            <string>라이브러리의 사진을 등록하기 위해 사진 라이브러리 사용권한이 필요합니다.</string>
+        </config-file>
+        <config-file mode="add" parent="NSCameraUsageDescription" platform="ios" target="*-Info.plist">
+            <string>등록할 사진을 촬영하기 위해 카메라 사용권한이 필요합니다.</string>
+        </config-file>
+        <config-file mode="add" parent="NSLocationWhenInUseUsageDescription" platform="ios" target="*-Info.plist">
+            <string>현재위치 및 가까운 장소를 찾기 위해, 현재 위치정보 사용권한이 필요합니다.</string>
+        </config-file>
+        <config-file mode="add" parent="NSLocationAlwaysUsageDescription" platform="ios" target="*-Info.plist">
+            <string>현재위치 및 가까운 장소를 찾기 위해, 현재 위치정보 사용권한이 필요합니다.</string>
+        </config-file>
         <icon height="57" src="resources/ios/icon/icon.png" width="57" />
         <icon height="114" src="resources/ios/icon/icon@2x.png" width="114" />
         <icon height="40" src="resources/ios/icon/icon-40.png" width="40" />
@@ -85,5 +97,6 @@
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To locate you" />
     </plugin>
     <plugin name="cordova-plugin-camera" spec="^4.0.3" />
+    <plugin name="cordova-plugin-file" spec="^6.0.1" />
     <engine name="ios" spec="4.5.5" />
 </widget>
