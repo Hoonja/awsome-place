@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, ModalController, LoadingController, ToastController } from 'ionic-angular';
+import { IonicPage, ModalController, LoadingController, ToastController, NavController } from 'ionic-angular';
 import { NgForm } from '@angular/forms';
 import { SetLocationPage } from '../set-location/set-location';
 import { Location } from '../../models/locations';
@@ -24,6 +24,7 @@ export class AddPlacePage {
   };
   locationIsSet = false;
   imageUrl = '';
+  imageNativeUrl = '';
 
   constructor(
     private modalCtrl: ModalController,
@@ -32,19 +33,22 @@ export class AddPlacePage {
     private toastCtrl: ToastController,
     private camera: Camera,
     private file: File,
-    private placesService: PlacesService
+    private placesService: PlacesService,
+    private navCtrl: NavController
   ) {}
 
   onSubmit(form: NgForm) {
     console.log(form.value);
-    this.placesService.addPlace(form.value.title, form.value.description, this.location, this.imageUrl);
+    this.placesService.addPlace(form.value.title, form.value.description, this.location, this.imageUrl, this.imageNativeUrl);
     form.reset();
     this.location = {
       lat: 40.7524324,
       lng: -73.9759827
     };
     this.imageUrl = '';
+    this.imageNativeUrl = '';
     this.locationIsSet = false;
+    this.navCtrl.pop();
   }
 
   onOpenMap() {
@@ -91,19 +95,23 @@ export class AddPlacePage {
       correctOrientation: true
     })
       .then(imageData => {
-        console.log(imageData);
-        console.log(normalizeURL(imageData));
-        const normalizedUrl = normalizeURL(imageData);
-        const currentName = normalizedUrl.replace(/^.*[\\\/]/, '');
-        const path = normalizedUrl.replace(/[^\/]*$/, '');
-        this.file.moveFile(path, currentName, cordova.file.dataDirectory, currentName)
+        const currentName = imageData.replace(/^.*[\\\/]/, '');
+        const path = imageData.replace(/[^\/]*$/, '');
+        const newFileName = new Date().getUTCMilliseconds() + '.jpg';
+        this.file.moveFile(path, currentName, cordova.file.dataDirectory, newFileName)
         .then((data: Entry) => {
-          this.imageUrl = data.nativeURL;
+          console.log('nativeURL      : ' + data.nativeURL);
+          console.log('normalizedURL  : ' + normalizeURL(data.nativeURL));
+          console.log('toURL          : ' + data.toURL());
+          console.log('InternalURL    : ' + data.toInternalURL());
+          this.imageNativeUrl = data.nativeURL;
+          this.imageUrl = normalizeURL(data.nativeURL);
+          // this.imageUrl = data.toInternalURL();
           this.camera.cleanup();
-          this.file.removeFile(path, currentName);
         })
         .catch((err: FileError) => {
           this.imageUrl = '';
+          this.imageNativeUrl = '';
           const toast = this.toastCtrl.create({
             message: 'Could not save the image.Plase try agaiin',
             duration: 2500

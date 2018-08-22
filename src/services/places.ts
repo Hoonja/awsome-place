@@ -14,8 +14,8 @@ export class PlacesService {
 
   constructor(private storage: Storage, private file: File) {}
 
-  addPlace(title: string, description: string, location: Location, imageUrl: string) {
-    const place = new Place(title, description, location, imageUrl);
+  addPlace(title: string, description: string, location: Location, imageUrl: string, imageNativeUrl: string) {
+    const place = new Place(title, description, location, imageUrl, imageNativeUrl);
     this.places.push(place);
     this.storage.set('places', this.places)
     .then(data => {
@@ -31,9 +31,10 @@ export class PlacesService {
   }
 
   fetchPlaces() {
-    this.storage.get('places')
+    return this.storage.get('places')
     .then((places: Place[]) => {
       this.places = places != null ? places: [];
+      return this.places;
     })
     .catch(err => {
       console.error(err);
@@ -53,12 +54,12 @@ export class PlacesService {
   }
 
   private removeFile(place: Place) {
-    const currentName = place.imageUrl.replace(/^.*[\\\/]/, '');
+    const currentName = place.imageNativeUrl.replace(/^.*[\\\/]/, '');
     this.file.removeFile(cordova.file.dataDirectory, currentName)
     .then(() => console.log('Removed File'))
     .catch(() => {
       console.error('Error while removing File');
-      this.addPlace(place.title, place.description, place.location, place.imageUrl);
+      this.addPlace(place.title, place.description, place.location, place.imageUrl, place.imageNativeUrl);
     })
   }
 }
